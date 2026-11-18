@@ -19,6 +19,8 @@ chmod +x Sorter Sorter.Config Sorter.Updater
 ./Sorter --autostart
 ```
 
+_(Note: Not needed if your OS supports automatic executable permissions)_
+
 Python 3 (standard library only) is required for update functionality; no API key is needed.
 The user must be able to write to the folder containing the executables.
 
