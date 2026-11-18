@@ -78,4 +78,4 @@ To install the latest release:
 
 If the updater reports missing assets or checksums, correct the assets in the newest GitHub release. If an executable is not writable, move the three program files to a folder owned by your user and run them from there.
 
-_`src` Is included with release._
+_`src` Is included with releases in File-Sorter-x.x.x.-OS.zip/File-Sorter-x.x.x.-OS/src/ (Will be added to main soon)_
