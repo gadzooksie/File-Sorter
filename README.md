@@ -2,82 +2,146 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-File Sorter runs on Linux x86-64 (tested with Xvfb/X11; intended for SteamOS Desktop Mode).
-It has two graphical applications and a Python 3 update helper:
+**File Sorter** is a configurable, automatic file organizer for Linux. It monitors folders you choose and moves matching files to destinations based on filename patterns or extensions.
 
-- `Sorter` - GUI that starts/stops the file sorter and shows activity.
-- `Sorter.Config` - GUI for choosing watched folders, patterns and destination folders.
-- `Sorter.Updater` - local updater used by both GUIs.
+Starting with v1.2.1, the application is distributed as **one AppImage** containing the sorter, configuration editor, and updater. In v1.2.2 and later, **Menu, Sorter, and Config share one application window**. Version 1.2.3 adds portable `~/` paths so the default configuration is not tied to the `deck` username.
 
-## Install
+## Features
 
-Keep all three files **together in one folder** and make them executable:
+- **Automatic sorting:** Monitors configured directories and moves matching files to your chosen destinations.
+- **Custom rules:** Add, edit, prioritize, or remove filename patterns and extensions, with a separate destination for each rule.
+- **Drag and drop:** Drop a sample file into Config to detect its extension, or drop a folder to select a destination.
+- **Flexible destinations:** Use folders anywhere you have write access, not just a `Sorted` directory. Missing destination subfolders are created as needed.
+- **Archive organization:** Optionally separate archives into `New/` and `Old/` folders based on a 72-hour threshold.
+- **Collision protection:** Existing destination files are not overwritten.
+- **Single-window interface:** Switch between the Menu, Sorter, and Config pages without opening duplicate application windows.
+- **Background operation:** Sorting continues when you select **Back to Menu**, and stops when you stop the sorter or close the main window.
+- **GitHub updates:** Check for newer stable AppImage releases from within the app.
+
+## Download and install
+
+Download the latest **`File-Sorter-vX.Y.Z-x86_64.AppImage`** from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases/latest).
+
+On Linux, make the downloaded file executable and open it. For example, for v1.2.3:
 
 ```bash
-chmod +x Sorter Sorter.Config Sorter.Updater
-./Sorter.Config
-./Sorter --autostart
+chmod +x ~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
+~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
 ```
 
-_(Note: Not needed if your OS supports automatic executable permissions)_
+You can also enable **Is executable** in your file manager's file properties, then double-click the AppImage. No separate installation of `Sorter`, `Sorter.Config`, or `Sorter.Updater` is needed.
 
-Python 3 (standard library only) is required for update functionality; no API key is needed.
-The user must be able to write to the folder containing the executables.
+**Tip:** Consider keeping the AppImage in `~/Applications/` instead of a watched folder such as Downloads, so it does not get moved by an `*.AppImage` sorting rule.
+
+## Using File Sorter
+
+From the main menu:
+
+1. Select **Configure** to choose watched directories, edit sorting rules, and assign destinations.
+2. Select **Back to Menu** when finished. Your settings are saved locally.
+3. Select **Start Sorter** to open the sorter page, then start sorting if it is not already active.
+4. Use **Back to Menu** to switch pages without interrupting active sorting.
+5. Stop the sorter explicitly, or close the main application window to exit and stop its background worker.
+
+Changes to rules and watched folders are picked up by the running sorter on its next scan (normally about every two seconds). File and folder selection dialogs may appear as separate system dialogs; the three primary pages stay in one window.
+
+## Configuration
+
+User settings are stored in `~/.config/sorter-config/`, or in `$XDG_CONFIG_HOME/sorter-config/` when `XDG_CONFIG_HOME` is set:
+
+| File | Purpose |
+| --- | --- |
+| `directories.txt` | Watched directories, one path per line. |
+| `rules.tsv` | Ordered sorting rules: `scope`, `pattern`, `destination`, and `mode` (tab-separated). |
+| `auto-update.txt` | Automatic-update preference (`on` or `off`). |
+| `installed-release.json` | Installed-release information recorded by the updater. |
+
+Fresh installations default to **`~/Downloads`** and **`~/Documents`** as watched folders, with **36 predefined sorting rules**. You can change or remove these defaults in Config.
+
+### Portable paths
+
+File Sorter expands `~/` to the **current user's home directory**, so the same configuration can be used by different Linux users:
+
+| Configuration path | Meaning |
+| --- | --- |
+| `~/Downloads` | Downloads folder in the current user's home. |
+| `~/Documents` | Documents folder in the current user's home. |
+| `~/Sorted/PDFs` | Example destination inside the current user's home. |
+| `/run/media/deck/ExternalDrive/Files` | Example absolute path to a mounted drive; update it for your system. |
+
+`~` is expanded explicitly by File Sorter when reading its settings; it is not automatically expanded by every program that reads a text file. Absolute paths outside the user's home, such as mounted drives, remain supported. Drives must be mounted and writable when sorting occurs.
+
+### Migrating older settings
+
+On first launch, when a corresponding new configuration file does not exist, File Sorter can copy settings from the legacy `~/.config/general-cleanup-gui/` directory. The original files are not deleted and existing settings in `~/.config/sorter-config/` are not overwritten.
+
+Paths pointing inside the current user's home can be converted to `~/...` when edited in Config. Paths hard-coded for another user must be corrected manually.
 
 ## Automatic updates
 
-The applications automatically check for a new stable release **at most once every six hours** when launched. Automatic updates are initially enabled and can be disabled in `Sorter.Config` with **AUTO UPDATE: ON/OFF**. You can also select **UPDATE NOW** in either GUI.
+File Sorter checks the [latest stable GitHub release](https://github.com/gadzooksie/File-Sorter/releases/latest) when automatic updates are enabled, with checks limited to approximately once every six hours. Use **Check for Updates** from the main menu to check manually, or turn automatic checking on or off in Config.
 
-The updater uses https://api.github.com/repos/gadzooksie/File-Sorter/releases/latest and expects two release assets with the **exact** names `Sorter` and `Sorter.Config`. The files must be Linux x86-64 ELF executables. GitHub's asset SHA-256 digest and size are checked before replacement. Both files are staged before either is replaced; the updater attempts to roll back if a replacement fails. If a release does not have those two valid assets, installation is refused.
+The AppImage updater looks for a versioned release asset such as `File-Sorter-v1.2.3-x86_64.AppImage`. It verifies the downloaded file against the release asset's reported size and SHA-256 digest and checks that it is an executable AppImage before attempting to replace the current file. The previous AppImage is retained as a `.previous` backup. Restart the application to use an installed update.
 
-An optional asset named `Sorter.Updater` is not currently updated automatically. To replace the helper, distribute an updated copy with a future release as needed.
+**Requirements for updating:** Python 3 (standard library), an internet connection, and write access to the directory containing the AppImage. **Ordinary sorting works offline** and does not require a GitHub account or API key. An older three-file installation must be upgraded manually to the AppImage format once.
 
-The update mechanism cannot be added retroactively to v1.0.0: users need to **install this updated package once**. Thereafter the running applications can update their own `Sorter` and `Sorter.Config` executables from new published stable GitHub releases. Restart the applications after an update to use the new binaries; the currently running sorter continues using the old version until restarted.
+## Compatibility
 
-The updater does not modify any user sorting rules or watched-folder settings.
+- **CPU architecture:** x86-64 (not ARM).
+- **System libraries:** glibc 2.34 or newer.
+- **Desktop:** X11 or XWayland; intended for SteamOS Desktop Mode and compatible Linux desktops.
+- **AppImage runtime:** FUSE-free, extraction-based runtime.
+- **Internet access:** Optional for sorting; required for online update checks.
 
-## Configuration and migration
+AppImage improves portability but does **not** guarantee support for every Linux distribution, desktop environment, or CPU architecture.
 
-Config files are stored in `~/.config/sorter-config/` (or `$XDG_CONFIG_HOME/sorter-config/`):
+## Command-line options
 
-- `directories.txt` - watched paths, one per line.
-- `rules.tsv` - ordered sorting rules, four tab-separated fields: scope, pattern, destination, mode.
-- `auto-update.txt` - `on` or `off` (missing means on).
-- `installed-release.json` - latest installed release tag, maintained by the updater.
-
-On first launch, settings from `~/.config/general-cleanup-gui/` are copied to `~/.config/sorter-config/` **only when the new files do not yet exist**. The old settings are left intact. Changes made by an older app after migration are not merged automatically; close older versions before migrating.
-
-## Build from source
-
-Sources are in `src/`. To build them with gcc and Xlib headers:
+The AppImage also supports these entry points:
 
 ```bash
-cd src
-bash build.sh
+./File-Sorter-v1.2.3-x86_64.AppImage --sorter
+./File-Sorter-v1.2.3-x86_64.AppImage --config
+./File-Sorter-v1.2.3-x86_64.AppImage --check-updates
+./File-Sorter-v1.2.3-x86_64.AppImage --update
 ```
 
-The `Sorter_Embedded.sh` file is included for reference. The Bash sorter is embedded in the C main app as a byte array and should be regenerated after editing the shell script.
+**Note:** The `--sorter` and `--config` options open standalone application windows for scripting compatibility. Launch without options for the integrated single-window interface.
 
-## Release publishing
+## Building from source
 
-Create a **new GitHub release with a new tag** for every published version. Each release must include executable assets named exactly `Sorter` and `Sorter.Config`. Use GitHub Releases, not arbitrary links or a moving `Update` tag, as the update channel.
+The source tree is located in [`Source/`](./Source/). It includes the C/Xlib interface sources, embedded Bash sorter, Python updater and build scripts, AppImage runtime, default rules, and tests.
 
-The repository's original release is tagged `initial-release`, title `Version 1.0.0`. A GitHub release can reference only one Git tag. A separate `Update` tag cannot be attached as a second tag to that release.
+Building requires GCC, X11 development headers/libraries, Bash, and Python 3. The local FUSE-free AppImage builder also requires static linking support for zlib.
+
+**Current source-tree caveat:** `src/build.sh` expects a `Sorter.Updater` Python script in `Source/`, but that standalone script is not currently tracked in the repository. You can extract it from the published v1.2.3 AppImage before building. From the repository root, with the downloaded AppImage in `~/Downloads`:
+
+```bash
+chmod +x ~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
+~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage --appimage-extract
+cp squashfs-root/usr/bin/Sorter.Updater Source/Sorter.Updater
+cd Source
+bash src/build.sh
+bash make_appdir.sh
+bash build_local_appimage.sh "$PWD/File-Sorter-v1.2.3-x86_64.AppImage"
+```
+
+The build produces a single AppImage in `Source/`. The alternative `build_appimage.sh` uses the official `appimagetool` when available. The C sorter contains embedded Bash bytes; the build scripts regenerate them after changes to the shell source.
+
+## Publishing releases
+
+Publish each new version as a **new GitHub Release with a unique tag** and include the versioned x86-64 `.AppImage` asset. Automatic AppImage updates depend on the latest stable release containing a valid AppImage with the expected filename, not on separate `Sorter` and `Sorter.Config` release assets.
 
 ## Troubleshooting
 
-For a manual check from the folder with the programs:
+- **AppImage will not open:** Confirm it is executable, the system is x86-64 with a compatible glibc version, and X11/XWayland is available.
+- **Files are not moving:** Check that sorting is running, the file matches an enabled rule, and the watched folder and destination are accessible.
+- **External-drive destination fails:** Mount the drive and verify write permission.
+- **Update fails:** Confirm the latest published release contains the correctly named AppImage and that the installation directory is writable. Older non-AppImage versions require a one-time manual upgrade.
+- **Configuration appears missing:** Inspect `~/.config/sorter-config/` (or your configured XDG config home), and use Config to review watched folders and rules.
 
-```bash
-./Sorter.Updater --app-dir . --check
-```
+## License and attribution
 
-To install the latest release:
+Licensed under the [MIT License](./LICENSE).
 
-```bash
-./Sorter.Updater --app-dir . --install
-```
-
-If the updater reports missing assets or checksums, correct the assets in the newest GitHub release. If an executable is not writable, move the three program files to a folder owned by your user and run them from there.
-
-## DISCLAIMER: This project was made using ChatGPT-6.
+## DISCLAIMER: This project was only made possible using ChatGPT-6.
