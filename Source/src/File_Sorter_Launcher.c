@@ -71,7 +71,7 @@ static void redraw(void){
         return;
     }
     label(64,95,"FILE SORTER",ink,1);
-    label(65,128,"v1.2.2  |  Linux x86-64 AppImage  |  One window, three pages",subtle,0);
+    label(65,128,"v1.2.3  |  Linux x86-64 AppImage  |  One window, three pages",subtle,0);
     btn(167,"START SORTER","Open or return to your running sorter. Sorting continues when you go back.",1);
     btn(308,"CONFIGURE","Manage monitored folders, formats and destinations in this same window.",0);
     btn(449,"CHECK FOR UPDATES","Check GitHub for a new version of this AppImage",0);
@@ -98,11 +98,11 @@ static void show_page(int page){
     if(old!=None)XUnmapWindow(dpy,old);
     active_page=page;
     if(page==0){
-        XStoreName(dpy,win,"File Sorter v1.2.2");
+        XStoreName(dpy,win,"File Sorter v1.2.3");
         XSetInputFocus(dpy,win,RevertToParent,CurrentTime);
     }else{
         next=child_window(page==1?"FILE_SORTER_SORTER_WINDOW":"FILE_SORTER_CONFIG_WINDOW");
-        XStoreName(dpy,win,page==1?"File Sorter v1.2.2 - Sorter":"File Sorter v1.2.2 - Config");
+        XStoreName(dpy,win,page==1?"File Sorter v1.2.3 - Sorter":"File Sorter v1.2.3 - Config");
         if(next!=None){
             XWindowAttributes attrs;
             if(XGetWindowAttributes(dpy,next,&attrs)){
@@ -171,7 +171,7 @@ int main(void){
     XSetErrorHandler(x11_recoverable_error);
     screen=DefaultScreen(dpy);
     win=XCreateSimpleWindow(dpy,RootWindow(dpy,screen),100,70,W,H,0,0,0);
-    XStoreName(dpy,win,"File Sorter v1.2.2");
+    XStoreName(dpy,win,"File Sorter v1.2.3");
     navigate_atom=XInternAtom(dpy,"FILE_SORTER_NAVIGATE",False);
     sorter_atom=XInternAtom(dpy,"FILE_SORTER_SORTER_WINDOW",False);
     config_atom=XInternAtom(dpy,"FILE_SORTER_CONFIG_WINDOW",False);

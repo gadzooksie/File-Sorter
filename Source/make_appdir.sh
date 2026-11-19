@@ -12,6 +12,6 @@ cp "$HERE/assets/AppRun" "$APPDIR/AppRun"
 chmod +x "$APPDIR/AppRun" "$APPDIR/usr/bin/Sorter" "$APPDIR/usr/bin/Sorter.Config" "$APPDIR/usr/bin/Sorter.Updater" "$APPDIR/usr/bin/File-Sorter-Launcher"
 ln -sfn file-sorter.png "$APPDIR/.DirIcon"
 cat > "$APPDIR/usr/share/file-sorter/VERSION" <<'EOF'
-1.2.2
+1.2.3
 EOF
 printf 'Prepared %s\n' "$APPDIR"

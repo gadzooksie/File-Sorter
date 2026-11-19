@@ -44,7 +44,7 @@ class Response:
 class Checks(unittest.TestCase):
     def test_entrypoints(self):
         env={**os.environ,'APPDIR':str(APPDIR)}
-        for args,expect in [(['--help'],'File Sorter v1.2.2'),(['--sorter','--help'],'File Sorter v1.2.2'),(['--config','--help'],'File Sorter Config GUI v1.2.2'),(['--updater','--version'],'v1.2.2')]:
+        for args,expect in [(['--help'],'File Sorter v1.2.3'),(['--sorter','--help'],'File Sorter v1.2.3'),(['--config','--help'],'File Sorter Config GUI v1.2.3'),(['--updater','--version'],'v1.2.3')]:
             p=subprocess.run([str(APPDIR/'AppRun')]+args,env=env,capture_output=True,text=True,timeout=6)
             self.assertEqual(p.returncode,0,p.stderr)
             self.assertIn(expect,p.stdout)
@@ -53,22 +53,22 @@ class Checks(unittest.TestCase):
         header=(ROOT/'src/sorter_updater_embedded.h').read_text().split('static const char su_embedded_updater[] =\n',1)[1]
         embedded=''.join(ast.literal_eval(line.strip().removesuffix(';')) for line in header.splitlines() if line.strip())
         self.assertEqual(embedded,(ROOT/'Sorter.Updater').read_text())
-        self.assertIn('BUILD_VERSION = (1, 2, 2)',embedded)
+        self.assertIn('BUILD_VERSION = (1, 2, 3)',embedded)
 
     def test_bundle_file_layout(self):
         for path in ['AppRun','file-sorter.desktop','file-sorter.png','usr/bin/Sorter','usr/bin/Sorter.Config','usr/bin/Sorter.Updater','usr/bin/File-Sorter-Launcher','usr/share/file-sorter/defaults/sorter-config/rules.tsv']:
             self.assertTrue((APPDIR/path).is_file(),path)
-        self.assertEqual((APPDIR/'usr/share/file-sorter/VERSION').read_text().strip(),'1.2.2')
+        self.assertEqual((APPDIR/'usr/share/file-sorter/VERSION').read_text().strip(),'1.2.3')
         self.assertEqual(len([x for x in (ROOT/'defaults/sorter-config/rules.tsv').read_text().splitlines() if x and not x.startswith('#')]),36)
 
     def test_get_latest_finds_appimage(self):
         updater=load_updater()
-        name='File-Sorter-v1.2.2-x86_64.AppImage'
-        url='https://github.com/gadzooksie/File-Sorter/releases/download/v1.2.2/'+name
-        metadata={'tag_name':'v1.2.2','draft':False,'prerelease':False,'assets':[{'name':name,'size':98765,'digest':'sha256:'+'a'*64,'browser_download_url':url}]}
+        name='File-Sorter-v1.2.3-x86_64.AppImage'
+        url='https://github.com/gadzooksie/File-Sorter/releases/download/v1.2.3/'+name
+        metadata={'tag_name':'v1.2.3','draft':False,'prerelease':False,'assets':[{'name':name,'size':98765,'digest':'sha256:'+'a'*64,'browser_download_url':url}]}
         updater.request=lambda url:Response(json.dumps(metadata).encode())
         version,asset=updater.latest_appimage()
-        self.assertEqual(version,(1,2,2))
+        self.assertEqual(version,(1,2,3))
         self.assertEqual(asset['name'],name)
 
     def test_latest_zip_without_appimage_does_not_error(self):

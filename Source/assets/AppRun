@@ -11,7 +11,7 @@ case "${1:-}" in
   --updater) shift; exec python3 "$HERE/usr/bin/Sorter.Updater" "$@" ;;
   --autostart) shift; exec "$HERE/usr/bin/Sorter" --autostart "$@" ;;
   --help|-h)
-    echo 'File Sorter v1.2.2 AppImage'
+    echo 'File Sorter v1.2.3 AppImage'
     echo 'Run without options for the graphical launcher.'
     echo '--sorter [--autostart]   Start sorter GUI'
     echo '--config                Start config GUI'

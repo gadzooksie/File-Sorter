@@ -67,6 +67,20 @@ static int in_rect(int px,int py,int x,int y,int w,int h){return px>=x&&px<x+w&&
 static int mkpath(const char *dir){char p[PATH_MAX];if(strlen(dir)>=PATH_MAX)return -1;strcpy(p,dir);for(char *k=p+1;*k;k++){if(*k=='/'){*k=0;if(mkdir(p,0700)!=0&&errno!=EEXIST)return -1;*k='/';}}if(mkdir(p,0700)!=0&&errno!=EEXIST)return -1;return 0;}
 static int atomic_open(char *temp,size_t n,const char *path){char parent[PATH_MAX];if(strlen(path)>=PATH_MAX-16)return -1;snprintf(parent,sizeof(parent),"%s",path);char *cut=strrchr(parent,'/');if(!cut)return -1;*cut=0;if(mkpath(parent)<0)return -1;snprintf(temp,n,"%s.tmpXXXXXX",path);return mkstemp(temp);}
 static int flush_atomic(FILE *f,int fd,const char *tmp,const char *dest){int ok=fflush(f)==0;ok=fsync(fd)==0&&ok;ok=fclose(f)==0&&ok;if(ok&&rename(tmp,dest)==0)return 0;unlink(tmp);return -1;}
+/* Persist folders beneath this user's HOME using ~/, not a particular login name.
+ * The Bash worker expands ~ explicitly when reading monitored directories. */
+static int portable_home_path(const char *absolute,char *out,size_t cap){
+    size_t hlen=strlen(home);
+    while(hlen>1 && home[hlen-1]=='/')hlen--;
+    const char *value=absolute;
+    char converted[PATH_MAX];
+    if(hlen && strncmp(absolute,home,hlen)==0 &&
+       (absolute[hlen]=='/' || absolute[hlen]=='\0')){
+        if(snprintf(converted,sizeof(converted),"~%s",absolute+hlen)>=(int)sizeof(converted))return 0;
+        value=converted;
+    }
+    return snprintf(out,cap,"%s",value)<(int)cap;
+}
 static int save_directories(void){char tmp[PATH_MAX];int fd=atomic_open(tmp,sizeof(tmp),dir_file);if(fd<0)return -1;FILE *f=fdopen(fd,"w");if(!f){close(fd);unlink(tmp);return -1;}for(int i=0;i<dir_count;i++)if(fprintf(f,"%s\n",dirs[i])<0){fclose(f);unlink(tmp);return -1;}return flush_atomic(f,fd,tmp,dir_file);}
 static int save_rules(void){char tmp[PATH_MAX];int fd=atomic_open(tmp,sizeof(tmp),rules_file);if(fd<0)return -1;FILE *f=fdopen(fd,"w");if(!f){close(fd);unlink(tmp);return -1;}fputs("# File Sorter v3: scope, pattern, destination, mode (tab-separated)\n",f);for(int i=0;i<rule_count;i++)if(fprintf(f,"%s\t%s\t%s\t%s\n",rules[i].scope,rules[i].pattern,rules[i].dest,rules[i].mode)<0){fclose(f);unlink(tmp);return -1;}return flush_atomic(f,fd,tmp,rules_file);}
 static int index_of(const char *s,const char *const *options,int count){for(int i=0;i<count;i++)if(!strcmp(s,options[i]))return i;return -1;}
@@ -93,10 +107,26 @@ static int parse_rule(char *s,Rule *r){
 }
 static void load_directories(void){
     FILE *f=fopen(dir_file,"r");dir_count=0;selected_dir=-1;doffset=0;
-    if(!f){const char *p[]={"/Downloads","/Documents"};for(int i=0;i<2;i++)snprintf(dirs[dir_count++],PATH_MAX,"%s%s",home,p[i]);save_directories();return;}
-    char *line=NULL;size_t cap=0;ssize_t n;
-    while(dir_count<MAX_DIRS&&(n=getline(&line,&cap,f))>=0){while(n>0&&(line[n-1]=='\r'||line[n-1]=='\n'))line[--n]=0;if(n>0&&n<PATH_MAX&&line[0]=='/'&&!strchr(line,'\t'))strcpy(dirs[dir_count++],line);}
+    if(!f){
+        strcpy(dirs[dir_count++],"~/Downloads");
+        strcpy(dirs[dir_count++],"~/Documents");
+        if(save_directories()!=0)notice("Could not write default monitored folders.");
+        return;
+    }
+    char *line=NULL;size_t cap=0;ssize_t n;int migrated=0;
+    while(dir_count<MAX_DIRS&&(n=getline(&line,&cap,f))>=0){
+        while(n>0&&(line[n-1]=='\r'||line[n-1]=='\n'))line[--n]=0;
+        if(n==0||n>=PATH_MAX||strchr(line,'\t'))continue;
+        if(line[0]!='/' && !(line[0]=='~'&&(line[1]=='/'||line[1]=='\0')))continue;
+        char portable[PATH_MAX];
+        if(!portable_home_path(line,portable,sizeof(portable)))continue;
+        if(strcmp(line,portable)!=0)migrated=1;
+        strcpy(dirs[dir_count++],portable);
+    }
     free(line);fclose(f);
+    /* This only rewrites paths actually beneath this user's home; any external
+       absolute paths, including other mounted drives, remain unchanged. */
+    if(migrated && save_directories()!=0)notice("Could not migrate monitored folders to ~/ paths.");
 }
 static void load_rules(void){
     FILE *f=fopen(rules_file,"r");rule_count=0;selected_rule=-1;roffset=0;
@@ -108,7 +138,7 @@ static void load_rules(void){
     free(line);fclose(f);
 }
 static void clear_rule_edit(void){selected_rule=-1;input1[0]=0;input2[0]=0;scope_index=0;mode_index=0;focus=1;details_open=1;notice("New file format: enter an extension, choose a destination, then SAVE RULE.");redraw=1;}
-static void choose_rule(int n){if(n<0||n>=rule_count)return;selected_rule=n;Rule *r=&rules[n];strcpy(input1,r->pattern);strcpy(input2,r->dest);scope_index=index_of(r->scope,scope_codes,3);mode_index=index_of(r->mode,mode_codes,2);focus=0;redraw=1;}
+static void choose_rule(int n){if(n<0||n>=rule_count)return;selected_rule=n;Rule *r=&rules[n];strcpy(input1,r->pattern);portable_home_path(r->dest,input2,sizeof(input2));scope_index=index_of(r->scope,scope_codes,3);mode_index=index_of(r->mode,mode_codes,2);focus=0;redraw=1;}
 static void choose_directory(int n){if(n<0||n>=dir_count)return;selected_dir=n;snprintf(input2,sizeof(input2),"%s",dirs[n]);focus=0;redraw=1;}
 static void reload_files(void){load_directories();load_rules();input1[0]=input2[0]=0;notice("Reloaded rules and watched folders from disk.");}
 static void normalize_dir(const char *raw,char *out){out[0]=0;char *expanded=NULL;
@@ -121,9 +151,13 @@ static void add_directory(void){char p[PATH_MAX];if(!*input2){notice("Enter a fo
     struct stat st;if(stat(p,&st)!=0||!S_ISDIR(st.st_mode)){notice("Select a real directory.");return;}
     char sortroot[PATH_MAX],archive[PATH_MAX];snprintf(sortroot,sizeof(sortroot),"%s/Sorted",home);snprintf(archive,sizeof(archive),"%s/Downloads/Archives",home);
     if(!strcmp(p,"/")||!strcmp(p,"/home")||!strcmp(p,"/run")||path_within(p,sortroot)||path_within(p,archive)){notice("Cannot watch filesystem roots or default output folders.");return;}
-    for(int i=0;i<dir_count;i++)if(!strcmp(dirs[i],p)){selected_dir=i;notice("This directory is already monitored.");return;}
+    for(int i=0;i<dir_count;i++){
+        char existing[PATH_MAX];normalize_dir(dirs[i],existing);
+        if(!strcmp(existing,p)){selected_dir=i;notice("This directory is already monitored.");return;}
+    }
     if(dir_count>=MAX_DIRS){notice("Maximum of 96 watched directories reached.");return;}
-    strcpy(dirs[dir_count++],p);selected_dir=dir_count-1;if(selected_dir>=doffset+SHOW_ROWS)doffset=selected_dir-SHOW_ROWS+1;
+    if(!portable_home_path(p,dirs[dir_count],sizeof(dirs[dir_count]))){notice("Folder path too long.");return;}
+    dir_count++;selected_dir=dir_count-1;if(selected_dir>=doffset+SHOW_ROWS)doffset=selected_dir-SHOW_ROWS+1;
     if(save_directories()==0)notice("Watched directory added; sorter will pick it up on its next scan.");else notice("ERROR saving watched directories.");input2[0]=0;focus=0;redraw=1;
 }
 static void remove_directory(void){if(selected_dir<0||selected_dir>=dir_count){notice("Choose a directory before removing it.");return;}
@@ -163,7 +197,7 @@ static void save_rule_edit(void){Rule r={0};char pattern[MAX_PATTERN+1];snprintf
             notice("Destination path too long.");return;
         }
     }else{
-        notice("Choose a folder path, such as ~/Music or /run/media/deck/MyDrive.");return;
+        notice("Choose a folder path, such as ~/Music or /mnt/storage/Music.");return;
     }
     size_t dlen=strlen(destination);
     while(dlen>0 && isspace((unsigned char)destination[dlen-1]))destination[--dlen]=0;
@@ -171,8 +205,8 @@ static void save_rule_edit(void){Rule r={0};char pattern[MAX_PATTERN+1];snprintf
     if(!strcmp(destination,"~") || !strcmp(destination,"/")){
         notice("Choose a subfolder rather than the filesystem/home root.");return;
     }
-    snprintf(r.dest,sizeof(r.dest),"%s",destination);
-    if(!is_valid_rule(&r)){details_open=1;notice("Invalid rule: use .zip and any writable folder (~/Music or /run/media/deck/Drive).");return;}
+    if(!portable_home_path(destination,r.dest,sizeof(r.dest))){notice("Destination path too long.");return;}
+    if(!is_valid_rule(&r)){details_open=1;notice("Invalid rule: use .zip and a writable folder (~/Music or /mnt/storage).");return;}
     if(selected_rule>=0&&selected_rule<rule_count){rules[selected_rule]=r;}else{
         if(rule_count>=MAX_RULES){notice("Maximum 256 rules reached.");return;}
         rules[rule_count]=r;selected_rule=rule_count++;roffset=selected_rule>=SHOW_ROWS?selected_rule-SHOW_ROWS+1:0;
@@ -210,7 +244,7 @@ static void reset_rules(void){
 #include "menu_bridge.h"
 #define UPDATE_NOTIFY(message) notice(message)
 #include "sorter_update.h"
-static void draw_header(void){rectangle(0,0,W,H,bg);rectangle(0,0,W,5,green);txt(25,43,"FILE SORTER",ink,1);txt(27,66,"Configuration Editor v1.2.2  |  SteamOS / Linux",muted,0);
+static void draw_header(void){rectangle(0,0,W,H,bg);rectangle(0,0,W,5,green);txt(25,43,"FILE SORTER",ink,1);txt(27,66,"Configuration Editor v1.2.3  |  SteamOS / Linux",muted,0);
     button(915,22,190,42,"BACK TO MENU",blue,1);
     button(25,96,234,42,"WATCHED FOLDERS",tab==0?blue:header,1);button(269,96,234,42,"SORTING RULES",tab==1?blue:header,1);
     button(530,96,170,42,su_auto_enabled?"AUTO UPDATE: ON":"AUTO UPDATE: OFF",blue,1);
@@ -228,7 +262,7 @@ static void draw_dirs(void){
     char count[80];snprintf(count,sizeof(count),"%d monitored directories",dir_count);txt(389,606,count,muted,0);
     rectangle(PANEL_X,199,PANEL_W,427,panel);txt(750,229,"ADD / REMOVE FOLDERS",ink,1);
     txt(750,261,"Folder path",muted,0);rectangle(748,273,340,43,focus==2?active:header);
-    if(*input2)fitted(758,301,input2,319,ink);else txt(758,301,"~/Downloads or /home/deck/Mods",muted,0);
+    if(*input2)fitted(758,301,input2,319,ink);else txt(758,301,"~/Downloads or /mnt/storage/Mods",muted,0);
     button(748,340,340,44,"BROWSE FOR DIRECTORY",blue,1);
     button(748,404,340,46,"ADD DIRECTORY",green,1);
     button(748,464,340,46,"REMOVE SELECTED",red,selected_dir>=0);
@@ -551,7 +585,7 @@ int main(int argc,char **argv){
     snprintf(dir_file,sizeof(dir_file),"%s/directories.txt",cfg);snprintf(rules_file,sizeof(rules_file),"%s/rules.tsv",cfg);
     su_initialize();
     for(int i=1;i<argc;i++){
-        if(!strcmp(argv[i],"--help")){puts("File Sorter Config GUI v1.2.2\nUsage: Sorter.Config [--dump-config]\nEdits ~/.config/sorter-config/{directories.txt,rules.tsv}");return 0;}
+        if(!strcmp(argv[i],"--help")){puts("File Sorter Config GUI v1.2.3\nUsage: Sorter.Config [--dump-config]\nEdits ~/.config/sorter-config/{directories.txt,rules.tsv}");return 0;}
         if(!strcmp(argv[i],"--dump-config")){load_directories();load_rules();printf("Monitored directories: %d\nSorting rules: %d\nDirectories file: %s\nRules file: %s\n",dir_count,rule_count,dir_file,rules_file);return 0;}
     }
     notice("Changes are saved immediately and picked up by the sorter on its next scan.");load_directories();load_rules();

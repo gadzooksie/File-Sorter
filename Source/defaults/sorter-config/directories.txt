@@ -1,2 +1,2 @@
-/home/deck/Downloads
-/home/deck/Documents
+~/Downloads
+~/Documents

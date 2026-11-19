@@ -85,7 +85,7 @@ static void su_launch(int automatic){
     pid_t child=fork();if(child<0){close(pipefd[0]);close(pipefd[1]);return;}
     if(child==0){
         close(pipefd[0]);dup2(pipefd[1],STDOUT_FILENO);dup2(pipefd[1],STDERR_FILENO);close(pipefd[1]);
-        /* The GUI uses its own built-in v1.2.2 updater to prevent stale external
+        /* The GUI uses its own built-in v1.2.3 updater to prevent stale external
            Sorter.Updater helpers from breaking ZIP-based GitHub releases. */
         const char *appimage=getenv("APPIMAGE");
         if(appimage && appimage[0]=='/'){

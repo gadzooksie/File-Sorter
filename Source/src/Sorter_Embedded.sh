@@ -180,7 +180,7 @@ init_directories() {
     parent="${SORTER_DIRS_FILE%/*}"
     mkdir -p -- "$parent" || return 1
     tmp=$(mktemp "$parent/.directories-XXXXXX") || return 1
-    printf '%s\n' "$HOME/Downloads" "$HOME/Documents" > "$tmp"
+    printf '%s\n' '~/Downloads' '~/Documents' > "$tmp"
     if [[ ! -e "$SORTER_DIRS_FILE" && ! -L "$SORTER_DIRS_FILE" ]]; then
         mv -n -- "$tmp" "$SORTER_DIRS_FILE" || true
     fi
@@ -208,6 +208,9 @@ while true; do
     load_rules
     if [[ -r "$SORTER_DIRS_FILE" ]]; then
         while IFS= read -r directory || [[ -n "$directory" ]]; do
+            # Tilde is a literal in config files, so explicitly expand it.
+            # Absolute paths outside $HOME remain valid (including mounted drives).
+            directory="$(expand_path "$directory")" || continue
             [[ "$directory" == /* && -d "$directory" ]] || continue
             if [[ "$directory" == "$HOME" ]]; then sort_directory "$directory" home
             else sort_directory "$directory" watch; fi

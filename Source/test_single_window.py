@@ -53,7 +53,7 @@ with tempfile.TemporaryDirectory(prefix='single-window-') as tmp:
         time.sleep(.45)
         app=subprocess.Popen([str(APP)],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,preexec_fn=os.setsid)
         d=xdisplay.Display(':138')
-        main=eventually(lambda: next((w for w,n in app_windows(d) if n=='File Sorter v1.2.2'),None),'main menu')
+        main=eventually(lambda: next((w for w,n in app_windows(d) if n=='File Sorter v1.2.3'),None),'main menu')
         print('Main toplevel XID:',hex(main.id))
         assert len(app_windows(d))==1,app_windows(d)
         click(d,main,125,357) # Open Config first
@@ -63,7 +63,7 @@ with tempfile.TemporaryDirectory(prefix='single-window-') as tmp:
         print('Config embedded child:',hex(config.id),'single WM window')
         click(d,config,1000,43) # Back
         eventually(lambda:not visible(config),'menu appears after config')
-        eventually(lambda:main.get_wm_name()=='File Sorter v1.2.2','menu title')
+        eventually(lambda:main.get_wm_name()=='File Sorter v1.2.3','menu title')
         click(d,main,125,357)
         eventually(lambda:visible(config),'config restored')
         assert len(descendants_named(main,'Configuration Editor'))==1
@@ -79,7 +79,7 @@ with tempfile.TemporaryDirectory(prefix='single-window-') as tmp:
         eventually(lambda:(home/'Sorted/Text Files/txt/initial.txt').is_file(),'file sorted inside sorter page')
         click(d,sorter,846,43)
         eventually(lambda:not visible(sorter),'sorter hidden from menu')
-        assert main.get_wm_name()=='File Sorter v1.2.2'
+        assert main.get_wm_name()=='File Sorter v1.2.3'
         (home/'Downloads'/'second.txt').write_text('sample')
         eventually(lambda:(home/'Sorted/Text Files/txt/second.txt').is_file(),'sorting continues in menu')
         click(d,main,125,357)

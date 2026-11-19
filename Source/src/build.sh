@@ -8,4 +8,4 @@ gcc "${FLAGS[@]}" -o ../Sorter Sorter_Source.c -lX11
 gcc "${FLAGS[@]}" -o ../Sorter.Config Sorter_Config_Source.c -lX11
 gcc "${FLAGS[@]}" -o ../File-Sorter-Launcher File_Sorter_Launcher.c -lX11
 chmod +x ../Sorter ../Sorter.Config ../File-Sorter-Launcher ../Sorter.Updater
-printf 'Built File Sorter v1.2.2: Sorter, Sorter.Config, File-Sorter-Launcher\n'
+printf 'Built File Sorter v1.2.3: Sorter, Sorter.Config, File-Sorter-Launcher\n'

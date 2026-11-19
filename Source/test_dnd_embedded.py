@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import quote
 from Xlib import X,Xatom,display as xd,protocol
 ROOT=Path(__file__).resolve().parent
-APP=Path(os.environ.get('FILE_SORTER_BINARY', str(ROOT/'File-Sorter-v1.2.2-x86_64.AppImage')))
+APP=Path(os.environ.get('FILE_SORTER_BINARY', str(ROOT/'File-Sorter-v1.2.3-x86_64.AppImage')))
 
 def click(d,w,x,y):
     e=protocol.event.ButtonPress(time=X.CurrentTime,root=d.screen().root,window=w,child=X.NONE,
@@ -72,7 +72,7 @@ with tempfile.TemporaryDirectory(prefix='fs-dnd-') as tmp:
         time.sleep(.5)
         app=subprocess.Popen([str(APP)],env=env,preexec_fn=os.setsid,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         d=xd.Display(':139')
-        host=wait(lambda: next((w for w in d.screen().root.query_tree().children if (w.get_wm_name() or '').startswith('File Sorter v1.2.2')),None),'launcher')
+        host=wait(lambda: next((w for w in d.screen().root.query_tree().children if (w.get_wm_name() or '').startswith('File Sorter v1.2.3')),None),'launcher')
         click(d,host,126,354)
         editor=wait(lambda:next((w for w in host.query_tree().children if (w.get_wm_name() or '')=='File Sorter - Configuration Editor'),None),'Config embedded')
         wait(lambda:editor.get_attributes().map_state==X.IsViewable,'Config visible')
@@ -95,7 +95,7 @@ with tempfile.TemporaryDirectory(prefix='fs-dnd-') as tmp:
         # Save the selected rule after sample and destination drops.
         click(d,editor,918,590)
         wait(lambda:'*.tar.xz' in (cfg/'rules.tsv').read_text(),'rule saved after drag and drop')
-        assert str(dest) in (cfg/'rules.tsv').read_text()
+        assert '~/Other Folder' in (cfg/'rules.tsv').read_text()
         assert file.is_file(), 'Config must not move sample files'
         assert len([w for w in d.screen().root.query_tree().children if 'File Sorter' in (w.get_wm_name() or '')])==1
         print('PASS: embedded Config accepts file and folder drops through the single main window')

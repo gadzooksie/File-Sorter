@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
-OUT="${1:-/mnt/data/File-Sorter-v1.2.2-x86_64.AppImage}"
+OUT="${1:-/mnt/data/File-Sorter-v1.2.3-x86_64.AppImage}"
 gcc -static -O2 -s -Wall -Wextra -o appimage_runtime appimage_runtime.c -lz
 python3 pack_squashfs.py File-Sorter.AppDir appimage.squashfs
 python3 - "$OUT" <<'PY'
