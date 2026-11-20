@@ -4,7 +4,7 @@ First repo, so expect discrepancies from regular repos.
 
 **File Sorter** is a configurable, automatic file organizer for Linux, Windows, and macOS. It monitors directories you choose and moves files to destinations based on filename extensions or patterns. Its **Menu**, **Sorter**, and **Config** pages share one window, and sorting can continue while you edit configuration or return to the menu.
 
-**Current prepared version: v1.3.4.** The latest public GitHub version before this update was **v1.2.3**; the Windows/macOS work and the new overwrite option are included in the v1.3.4 release package. **Publishing the new release and updating this repository are separate steps.**
+**Current prepared version: v1.3.5.** The latest public GitHub version before this update was **v1.2.3**; the Windows/macOS work and the new overwrite option are included in the v1.3.5 release package. **Publishing the new release and updating this repository are separate steps.**
 
 ## Features
 
@@ -19,28 +19,28 @@ First repo, so expect discrepancies from regular repos.
 
 ## Downloads and installation
 
-Choose the build for your operating system from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). The three packages share the same **v1.3.4** version, but the Windows and macOS portable editions require Python and Tkinter.
+Choose the build for your operating system from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). The three packages share the same **v1.3.5** version, but the Windows and macOS portable editions require Python and Tkinter.
 
 ### Linux: AppImage (x86-64)
 
-Download `File-Sorter-v1.3.4-x86_64.AppImage`, then run:
+Download `File-Sorter-v1.3.5-x86_64.AppImage`, then run:
 
 ```bash
-chmod +x File-Sorter-v1.3.4-x86_64.AppImage
-./File-Sorter-v1.3.4-x86_64.AppImage
+chmod +x File-Sorter-v1.3.5-x86_64.AppImage
+./File-Sorter-v1.3.5-x86_64.AppImage
 ```
 
 The AppImage contains the GUI, sorter, config editor, and updater. It is intended for **glibc 2.34+** Linux desktops with **X11 or XWayland**, including SteamOS Desktop Mode. It has a FUSE-free extraction runtime. It does not support every Linux distribution or CPU architecture.
 
 ### Windows: portable Python edition
 
-Download and extract `File-Sorter-v1.3.4-Windows-Portable.zip`. Install **Python 3.11 or newer with Tkinter** if it is not already installed, then double-click **`File Sorter.cmd`** in the extracted directory.
+Download and extract `File-Sorter-v1.3.5-Windows-Portable.zip`. Install **Python 3.11 or newer with Tkinter** if it is not already installed, then double-click **`File Sorter.cmd`** in the extracted directory.
 
 This edition targets Windows 10 and 11. The portable ZIP contains source and a launcher; **it is not a standalone `.exe`**. Optional file drag-and-drop requires `tkinterdnd2`.
 
 ### macOS: portable Python edition
 
-Download and extract `File-Sorter-v1.3.4-macOS-Portable.zip`. Open **`File Sorter.app`** or launch **`File Sorter.command`**. It supports Python 3.11+ with a working Tkinter installation, including Homebrew on Apple Silicon and Intel Macs.
+Download and extract `File-Sorter-v1.3.5-macOS-Portable.zip`. Open **`File Sorter.app`** or launch **`File Sorter.command`**. It supports Python 3.11+ with a working Tkinter installation, including Homebrew on Apple Silicon and Intel Macs.
 
 For Homebrew, install the `python-tk` formula corresponding to the installed Python version; for example:
 
@@ -81,6 +81,12 @@ The default rule set has **36 rules**. Your existing rules and watched folders a
 
 The setting is saved to `overwrite-files.txt` and reloaded on subsequent scans. Removing the file or setting it to `off` restores the non-overwriting behavior. **Review rules and back up important destination files before enabling it.**
 
+### Check Interval (new in v1.3.5)
+
+The **Config -> Check Interval (seconds)** field controls how often the sorter scans your watched directories. Enter any **positive decimal number** (for example `0.5`, `2`, or `12.25`) and press **Apply/Enter**, or use the **- 0.1** and **+ 0.1** controls for fine adjustment. The setting defaults to **2 seconds** and is stored in `scan-interval.txt` alongside `rules.tsv` and `directories.txt`.
+
+Changes are picked up by the running sorter between scans without restarting. Intervals near zero can cause high CPU or disk usage. Zero, negative values, and malformed values are refused (or treated as the default 2 seconds if manually written to the settings file).
+
 ## Updates
 
 Use **Check for Updates** in the main menu. Linux's AppImage updater is designed to verify the latest compatible AppImage's GitHub asset digest before installation and keep a previous copy for recovery. Restart the app after installing an update. Windows/macOS portable editions can **check** for releases but require manual installation of the matching ZIP; they do not automatically replace the application.
@@ -89,7 +95,7 @@ Do not publish a stable GitHub release that has only Windows or macOS assets whi
 
 ## Source code and building
 
-The v1.3.4 source archive contains three directories, `linux/`, `windows/`, and `macos/`. The Linux application is written in C/Xlib with an embedded Bash worker; Windows/macOS use a shared Python/Tkinter GUI and a Python sorting engine.
+The v1.3.5 source archive contains three directories, `linux/`, `windows/`, and `macos/`. The Linux application is written in C/Xlib with an embedded Bash worker; Windows/macOS use a shared Python/Tkinter GUI and a Python sorting engine.
 
 **Linux (gcc, Xlib development headers, Python 3, and AppImage packaging dependencies):**
 
