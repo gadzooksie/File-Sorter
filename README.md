@@ -4,7 +4,7 @@ First repo, so expect discrepancies from regular repos.
 
 **File Sorter** is a configurable, automatic file organizer for Linux, Windows, and macOS. It monitors directories you choose and moves files to destinations based on filename extensions or patterns. Its **Menu**, **Sorter**, and **Config** pages share one window, and sorting can continue while you edit configuration or return to the menu.
 
-**Current unified version: v1.3.3.** The latest public GitHub version before this update was **v1.2.3**; the Windows/macOS work and the new overwrite option are included in the v1.3.3 release package. **Publishing the new release and updating this repository are separate steps.**
+**Current prepared version: v1.3.4.** The latest public GitHub version before this update was **v1.2.3**; the Windows/macOS work and the new overwrite option are included in the v1.3.4 release package. **Publishing the new release and updating this repository are separate steps.**
 
 ## Features
 
@@ -19,28 +19,28 @@ First repo, so expect discrepancies from regular repos.
 
 ## Downloads and installation
 
-Choose the build for your operating system from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). The three packages share the same **v1.3.3** version, but the Windows and macOS portable editions require Python and Tkinter.
+Choose the build for your operating system from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). The three packages share the same **v1.3.4** version, but the Windows and macOS portable editions require Python and Tkinter.
 
 ### Linux: AppImage (x86-64)
 
-Download `File-Sorter-v1.3.3-x86_64.AppImage`, then run:
+Download `File-Sorter-v1.3.4-x86_64.AppImage`, then run:
 
 ```bash
-chmod +x File-Sorter-v1.3.3-x86_64.AppImage
-./File-Sorter-v1.3.3-x86_64.AppImage
+chmod +x File-Sorter-v1.3.4-x86_64.AppImage
+./File-Sorter-v1.3.4-x86_64.AppImage
 ```
 
 The AppImage contains the GUI, sorter, config editor, and updater. It is intended for **glibc 2.34+** Linux desktops with **X11 or XWayland**, including SteamOS Desktop Mode. It has a FUSE-free extraction runtime. It does not support every Linux distribution or CPU architecture.
 
 ### Windows: portable Python edition
 
-Download and extract `File-Sorter-v1.3.3-Windows-Portable.zip`. Install **Python 3.11 or newer with Tkinter** if it is not already installed, then double-click **`File Sorter.cmd`** in the extracted directory.
+Download and extract `File-Sorter-v1.3.4-Windows-Portable.zip`. Install **Python 3.11 or newer with Tkinter** if it is not already installed, then double-click **`File Sorter.cmd`** in the extracted directory.
 
 This edition targets Windows 10 and 11. The portable ZIP contains source and a launcher; **it is not a standalone `.exe`**. Optional file drag-and-drop requires `tkinterdnd2`.
 
 ### macOS: portable Python edition
 
-Download and extract `File-Sorter-v1.3.3-macOS-Portable.zip`. Open **`File Sorter.app`** or launch **`File Sorter.command`**. It supports Python 3.11+ with a working Tkinter installation, including Homebrew on Apple Silicon and Intel Macs.
+Download and extract `File-Sorter-v1.3.4-macOS-Portable.zip`. Open **`File Sorter.app`** or launch **`File Sorter.command`**. It supports Python 3.11+ with a working Tkinter installation, including Homebrew on Apple Silicon and Intel Macs.
 
 For Homebrew, install the `python-tk` formula corresponding to the installed Python version; for example:
 
@@ -71,7 +71,7 @@ The default rule set has **36 rules**. Your existing rules and watched folders a
 | Windows | `%APPDATA%\sorter-config\` |
 | macOS | `~/Library/Application Support/sorter-config/` |
 
-### Overwrite Files (new in v1.3.3)
+### Overwrite Files (introduced in v1.3.3)
 
 **Config → Overwrite Files** controls what happens when a destination contains a file with the same name:
 
@@ -89,7 +89,7 @@ Do not publish a stable GitHub release that has only Windows or macOS assets whi
 
 ## Source code and building
 
-The v1.3.3 source archive contains three directories, `linux/`, `windows/`, and `macos/`. The Linux application is written in C/Xlib with an embedded Bash worker; Windows/macOS use a shared Python/Tkinter GUI and a Python sorting engine.
+The v1.3.4 source archive contains three directories, `linux/`, `windows/`, and `macos/`. The Linux application is written in C/Xlib with an embedded Bash worker; Windows/macOS use a shared Python/Tkinter GUI and a Python sorting engine.
 
 **Linux (gcc, Xlib development headers, Python 3, and AppImage packaging dependencies):**
 
@@ -119,8 +119,18 @@ Regression tests are included with the source archive. The overwrite tests use t
 - **macOS GUI does not start:** Verify Python and matching Tkinter; consult `~/Library/Logs/File-Sorter/launcher.log`.
 - **Update not found:** Check the latest published stable GitHub release for an asset matching your platform and version.
 
+## Application icon
+
+The Linux AppImage, Windows package and macOS app use the same exact **white-outline file and folder** symbol from the approved screenshot with a transparent background. The original PNG and SVG are in each release's `assets/` folder.
+
+- **Linux:** the AppImage uses `file-sorter.png` for the desktop launcher and X11 window icon.
+- **Windows:** the portable app sets its Tk window icon from the PNG. Run the bundled `Create File Sorter Shortcut.ps1` on Windows to make a desktop shortcut with the `.ico` artwork. Native PyInstaller builds embed the `.ico` directly in the `.exe`.
+- **macOS:** Finder and the Dock use `File-Sorter.icns` in the `.app` bundle; Tk also loads the PNG where supported. Native builds embed the `.icns`.
+
+_The icon is intentionally white and transparent, so visibility may vary on light backgrounds._
+
 ## License and credits
 
 [MIT License](LICENSE). Copyright (c) 2026 gadzooksie.
 
-## DISCLAIMER: This project was only made possible using ChatGPT-6.
+This project was only made possible using ChatGPT-6.
