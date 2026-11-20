@@ -16,6 +16,7 @@ First repo, so expect discrepancies from regular repos.
 - Split archive files between `New/<extension>/` and `Old/<extension>/` using their last-modified time and a 72-hour threshold.
 - Show a live activity log, start/stop sorting, and switch between **Menu**, **Sorter**, and **Config** without opening additional top-level windows.
 - **Overwrite Files** option, **OFF by default**, described below.
+- MAKE SURE NO FILES IN SORTER CONFIG ARE FILES YOU DON'T WANT TO BE REMOVED!!!
 
 ## Downloads and installation
 
