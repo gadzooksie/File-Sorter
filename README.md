@@ -2,146 +2,125 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter** is a configurable, automatic file organizer for Linux. It monitors folders you choose and moves matching files to destinations based on filename patterns or extensions.
+**File Sorter** is a configurable, automatic file organizer for Linux, Windows, and macOS. It monitors directories you choose and moves files to destinations based on filename extensions or patterns. Its **Menu**, **Sorter**, and **Config** pages share one window, and sorting can continue while you edit configuration or return to the menu.
 
-Starting with v1.2.1, the application is distributed as **one AppImage** containing the sorter, configuration editor, and updater. In v1.2.2 and later, **Menu, Sorter, and Config share one application window**. Version 1.2.3 adds portable `~/` paths so the default configuration is not tied to the `deck` username.
+**Current unified version: v1.3.3.** The latest public GitHub version before this update was **v1.2.3**; the Windows/macOS work and the new overwrite option are included in the v1.3.3 release package. **Publishing the new release and updating this repository are separate steps.**
 
 ## Features
 
-- **Automatic sorting:** Monitors configured directories and moves matching files to your chosen destinations.
-- **Custom rules:** Add, edit, prioritize, or remove filename patterns and extensions, with a separate destination for each rule.
-- **Drag and drop:** Drop a sample file into Config to detect its extension, or drop a folder to select a destination.
-- **Flexible destinations:** Use folders anywhere you have write access, not just a `Sorted` directory. Missing destination subfolders are created as needed.
-- **Archive organization:** Optionally separate archives into `New/` and `Old/` folders based on a 72-hour threshold.
-- **Collision protection:** Existing destination files are not overwritten.
-- **Single-window interface:** Switch between the Menu, Sorter, and Config pages without opening duplicate application windows.
-- **Background operation:** Sorting continues when you select **Back to Menu**, and stops when you stop the sorter or close the main window.
-- **GitHub updates:** Check for newer stable AppImage releases from within the app.
+- Monitor user-selected folders, checking for matching files about every two seconds while sorting is enabled.
+- Add, remove, reorder, and edit sorting rules; choose custom output folders, including mounted external drives.
+- Create missing destination directories automatically, subject to filesystem permissions.
+- Drag a sample file into the configuration editor to detect its extension on Linux. Windows/macOS offer a sample-file picker; file drag-and-drop is optional with `tkinterdnd2`.
+- Use `~/Downloads` and similar portable paths relative to the current user's home directory; absolute paths are also accepted.
+- Split archive files between `New/<extension>/` and `Old/<extension>/` using their last-modified time and a 72-hour threshold.
+- Show a live activity log, start/stop sorting, and switch between **Menu**, **Sorter**, and **Config** without opening additional top-level windows.
+- **Overwrite Files** option, **OFF by default**, described below.
 
-## Download and install
+## Downloads and installation
 
-Download the latest **`File-Sorter-vX.Y.Z-x86_64.AppImage`** from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases/latest).
+Choose the build for your operating system from [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). The three packages share the same **v1.3.3** version, but the Windows and macOS portable editions require Python and Tkinter.
 
-On Linux, make the downloaded file executable and open it. For example, for v1.2.3:
+### Linux: AppImage (x86-64)
+
+Download `File-Sorter-v1.3.3-x86_64.AppImage`, then run:
 
 ```bash
-chmod +x ~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
-~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
+chmod +x File-Sorter-v1.3.3-x86_64.AppImage
+./File-Sorter-v1.3.3-x86_64.AppImage
 ```
 
-You can also enable **Is executable** in your file manager's file properties, then double-click the AppImage. No separate installation of `Sorter`, `Sorter.Config`, or `Sorter.Updater` is needed.
+The AppImage contains the GUI, sorter, config editor, and updater. It is intended for **glibc 2.34+** Linux desktops with **X11 or XWayland**, including SteamOS Desktop Mode. It has a FUSE-free extraction runtime. It does not support every Linux distribution or CPU architecture.
 
-**Tip:** Consider keeping the AppImage in `~/Applications/` instead of a watched folder such as Downloads, so it does not get moved by an `*.AppImage` sorting rule.
+### Windows: portable Python edition
 
-## Using File Sorter
+Download and extract `File-Sorter-v1.3.3-Windows-Portable.zip`. Install **Python 3.11 or newer with Tkinter** if it is not already installed, then double-click **`File Sorter.cmd`** in the extracted directory.
 
-From the main menu:
+This edition targets Windows 10 and 11. The portable ZIP contains source and a launcher; **it is not a standalone `.exe`**. Optional file drag-and-drop requires `tkinterdnd2`.
 
-1. Select **Configure** to choose watched directories, edit sorting rules, and assign destinations.
-2. Select **Back to Menu** when finished. Your settings are saved locally.
-3. Select **Start Sorter** to open the sorter page, then start sorting if it is not already active.
-4. Use **Back to Menu** to switch pages without interrupting active sorting.
-5. Stop the sorter explicitly, or close the main application window to exit and stop its background worker.
+### macOS: portable Python edition
 
-Changes to rules and watched folders are picked up by the running sorter on its next scan (normally about every two seconds). File and folder selection dialogs may appear as separate system dialogs; the three primary pages stay in one window.
+Download and extract `File-Sorter-v1.3.3-macOS-Portable.zip`. Open **`File Sorter.app`** or launch **`File Sorter.command`**. It supports Python 3.11+ with a working Tkinter installation, including Homebrew on Apple Silicon and Intel Macs.
 
-## Configuration
+For Homebrew, install the `python-tk` formula corresponding to the installed Python version; for example:
 
-User settings are stored in `~/.config/sorter-config/`, or in `$XDG_CONFIG_HOME/sorter-config/` when `XDG_CONFIG_HOME` is set:
+```bash
+brew install python@3.14 python-tk@3.14
+```
+
+The launcher checks whether the selected Python can actually open a Tk window and tries other installed interpreters if needed. Diagnostics are written to `~/Library/Logs/File-Sorter/launcher.log`. This portable `.app` **is not a self-contained, signed, or notarized macOS binary**. It may require permission to run depending on macOS security settings.
+
+## Configuring sorting
+
+Open the **Config** page to add watched folders and rules, choose destinations, and change the order in which rules are evaluated. The first matching rule is applied. Sorting moves files; **it does not copy them or recursively scan subdirectories**.
+
+Configuration files include:
 
 | File | Purpose |
 | --- | --- |
-| `directories.txt` | Watched directories, one path per line. |
-| `rules.tsv` | Ordered sorting rules: `scope`, `pattern`, `destination`, and `mode` (tab-separated). |
-| `auto-update.txt` | Automatic-update preference (`on` or `off`). |
-| `installed-release.json` | Installed-release information recorded by the updater. |
+| `directories.txt` | Watched folders, one path per line |
+| `rules.tsv` | Ordered rules: `scope`, `pattern`, `destination`, `mode` (four tab-separated fields) |
+| `overwrite-files.txt` | Global collision policy: `on` or `off` |
+| `auto-update.txt` | Whether to check GitHub for new releases automatically |
 
-Fresh installations default to **`~/Downloads`** and **`~/Documents`** as watched folders, with **36 predefined sorting rules**. You can change or remove these defaults in Config.
+The default rule set has **36 rules**. Your existing rules and watched folders are not reset when you install a new version. Linux can migrate settings from its older `general-cleanup-gui` configuration folder if needed.
 
-### Portable paths
-
-File Sorter expands `~/` to the **current user's home directory**, so the same configuration can be used by different Linux users:
-
-| Configuration path | Meaning |
+| Operating system | Configuration directory |
 | --- | --- |
-| `~/Downloads` | Downloads folder in the current user's home. |
-| `~/Documents` | Documents folder in the current user's home. |
-| `~/Sorted/PDFs` | Example destination inside the current user's home. |
-| `/run/media/deck/ExternalDrive/Files` | Example absolute path to a mounted drive; update it for your system. |
+| Linux | `~/.config/sorter-config/`, or `$XDG_CONFIG_HOME/sorter-config/` |
+| Windows | `%APPDATA%\sorter-config\` |
+| macOS | `~/Library/Application Support/sorter-config/` |
 
-`~` is expanded explicitly by File Sorter when reading its settings; it is not automatically expanded by every program that reads a text file. Absolute paths outside the user's home, such as mounted drives, remain supported. Drives must be mounted and writable when sorting occurs.
+### Overwrite Files (new in v1.3.3)
 
-### Migrating older settings
+**Config → Overwrite Files** controls what happens when a destination contains a file with the same name:
 
-On first launch, when a corresponding new configuration file does not exist, File Sorter can copy settings from the legacy `~/.config/general-cleanup-gui/` directory. The original files are not deleted and existing settings in `~/.config/sorter-config/` are not overwritten.
+- **OFF (default):** Leave the existing destination file untouched; the matching source file remains in its monitored folder.
+- **ON:** Replace an existing **regular file** with the matching source file. The replaced contents can be lost permanently. A confirmation is required before enabling it.
+- **Directories and symbolic links are not valid overwrite targets.** The same policy applies to archive placement and 72-hour archive reclassification.
 
-Paths pointing inside the current user's home can be converted to `~/...` when edited in Config. Paths hard-coded for another user must be corrected manually.
+The setting is saved to `overwrite-files.txt` and reloaded on subsequent scans. Removing the file or setting it to `off` restores the non-overwriting behavior. **Review rules and back up important destination files before enabling it.**
 
-## Automatic updates
+## Updates
 
-File Sorter checks the [latest stable GitHub release](https://github.com/gadzooksie/File-Sorter/releases/latest) when automatic updates are enabled, with checks limited to approximately once every six hours. Use **Check for Updates** from the main menu to check manually, or turn automatic checking on or off in Config.
+Use **Check for Updates** in the main menu. Linux's AppImage updater is designed to verify the latest compatible AppImage's GitHub asset digest before installation and keep a previous copy for recovery. Restart the app after installing an update. Windows/macOS portable editions can **check** for releases but require manual installation of the matching ZIP; they do not automatically replace the application.
 
-The AppImage updater looks for a versioned release asset such as `File-Sorter-v1.2.3-x86_64.AppImage`. It verifies the downloaded file against the release asset's reported size and SHA-256 digest and checks that it is an executable AppImage before attempting to replace the current file. The previous AppImage is retained as a `.previous` backup. Restart the application to use an installed update.
+Do not publish a stable GitHub release that has only Windows or macOS assets while Linux clients depend on the latest release: include an appropriately named Linux AppImage too.
 
-**Requirements for updating:** Python 3 (standard library), an internet connection, and write access to the directory containing the AppImage. **Ordinary sorting works offline** and does not require a GitHub account or API key. An older three-file installation must be upgraded manually to the AppImage format once.
+## Source code and building
 
-## Compatibility
+The v1.3.3 source archive contains three directories, `linux/`, `windows/`, and `macos/`. The Linux application is written in C/Xlib with an embedded Bash worker; Windows/macOS use a shared Python/Tkinter GUI and a Python sorting engine.
 
-- **CPU architecture:** x86-64 (not ARM).
-- **System libraries:** glibc 2.34 or newer.
-- **Desktop:** X11 or XWayland; intended for SteamOS Desktop Mode and compatible Linux desktops.
-- **AppImage runtime:** FUSE-free, extraction-based runtime.
-- **Internet access:** Optional for sorting; required for online update checks.
-
-AppImage improves portability but does **not** guarantee support for every Linux distribution, desktop environment, or CPU architecture.
-
-## Command-line options
-
-The AppImage also supports these entry points:
+**Linux (gcc, Xlib development headers, Python 3, and AppImage packaging dependencies):**
 
 ```bash
-./File-Sorter-v1.2.3-x86_64.AppImage --sorter
-./File-Sorter-v1.2.3-x86_64.AppImage --config
-./File-Sorter-v1.2.3-x86_64.AppImage --check-updates
-./File-Sorter-v1.2.3-x86_64.AppImage --update
-```
-
-**Note:** The `--sorter` and `--config` options open standalone application windows for scripting compatibility. Launch without options for the integrated single-window interface.
-
-## Building from source
-
-The source tree is located in [`Source/`](./Source/). It includes the C/Xlib interface sources, embedded Bash sorter, Python updater and build scripts, AppImage runtime, default rules, and tests.
-
-Building requires GCC, X11 development headers/libraries, Bash, and Python 3. The local FUSE-free AppImage builder also requires static linking support for zlib.
-
-**Current source-tree caveat:** `src/build.sh` expects a `Sorter.Updater` Python script in `Source/`, but that standalone script is not currently tracked in the repository. You can extract it from the published v1.2.3 AppImage before building. From the repository root, with the downloaded AppImage in `~/Downloads`:
-
-```bash
-chmod +x ~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage
-~/Downloads/File-Sorter-v1.2.3-x86_64.AppImage --appimage-extract
-cp squashfs-root/usr/bin/Sorter.Updater Source/Sorter.Updater
-cd Source
+cd linux
 bash src/build.sh
-bash make_appdir.sh
-bash build_local_appimage.sh "$PWD/File-Sorter-v1.2.3-x86_64.AppImage"
+bash build_local_appimage.sh
 ```
 
-The build produces a single AppImage in `Source/`. The alternative `build_appimage.sh` uses the official `appimagetool` when available. The C sorter contains embedded Bash bytes; the build scripts regenerate them after changes to the shell source.
+**Windows/macOS portable source (Python 3.11+ with Tkinter):**
 
-## Publishing releases
+```bash
+python3 src/file_sorter_app.py
+```
 
-Publish each new version as a **new GitHub Release with a unique tag** and include the versioned x86-64 `.AppImage` asset. Automatic AppImage updates depend on the latest stable release containing a valid AppImage with the expected filename, not on separate `Sorter` and `Sorter.Config` release assets.
+The macOS portable `.app` contains those Python files under `File Sorter.app/Contents/Resources/src/`; use its launcher for normal startup. Native, self-contained Windows/macOS binaries need builds on those respective platforms.
+
+### Tests
+
+Regression tests are included with the source archive. The overwrite tests use temporary files and do not need your real watched directories. Linux-specific GUI integration tests require an X11 display (or Xvfb). The Linux AppImage has been tested in a Linux X11 environment; the portable Windows/macOS implementations have not been fully tested on all supported hardware.
 
 ## Troubleshooting
 
-- **AppImage will not open:** Confirm it is executable, the system is x86-64 with a compatible glibc version, and X11/XWayland is available.
-- **Files are not moving:** Check that sorting is running, the file matches an enabled rule, and the watched folder and destination are accessible.
-- **External-drive destination fails:** Mount the drive and verify write permission.
-- **Update fails:** Confirm the latest published release contains the correctly named AppImage and that the installation directory is writable. Older non-AppImage versions require a one-time manual upgrade.
-- **Configuration appears missing:** Inspect `~/.config/sorter-config/` (or your configured XDG config home), and use Config to review watched folders and rules.
+- **A file does not move:** Check that sorting is running, its folder is monitored, and a matching rule exists. If a file with the same name is already at the destination and overwriting is OFF, the source is intentionally left alone.
+- **Unexpected replacement:** Turn **Overwrite Files** OFF in Config immediately and inspect your destination rules.
+- **Permission or missing-drive error:** Make sure the destination is mounted and writable.
+- **macOS GUI does not start:** Verify Python and matching Tkinter; consult `~/Library/Logs/File-Sorter/launcher.log`.
+- **Update not found:** Check the latest published stable GitHub release for an asset matching your platform and version.
 
-## License and attribution
+## License and credits
 
-Licensed under the [MIT License](./LICENSE).
+[MIT License](LICENSE). Copyright (c) 2026 gadzooksie.
 
 ## DISCLAIMER: This project was only made possible using ChatGPT-6.
