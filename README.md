@@ -2,7 +2,7 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter v1.3.8** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+**File Sorter v1.3.9** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
 
 ## Interface and keyboard navigation
 
@@ -22,22 +22,18 @@ Use `Ctrl+1/2/3` (Windows) or `Command+1/2/3` (macOS) to switch between Menu, So
 
 _The program never starts sorting merely because a page is opened. First-use folder monitoring remains opt-in._
 
-## Per-rule priorities and watched folders (v1.3.8)
+## Position-based rule priorities and watched folders (v1.3.9)
 
-Each sorting rule now has **Priority** (0–9999) and **Rule-Specific Watched Folders** options in **Config > Sorting Rules > Destination & Options > Priority / Sources**.
+Rule **priority now equals its position in the Sorting Rules list**, shown as `1/N`, `2/N`, ... `N/N`. **Position 1 is the highest priority.** The first matching rule wins, and the displayed ranking updates automatically whenever you add, remove, or reorder rules.
 
-- **Higher priority numbers win.** For example, `*.zip` with priority 20 takes precedence over `filename.zip` with priority 5, even if the filename-specific rule appears earlier in the list.
-- **Equal priorities preserve rule-list order.** The existing **Move Up / Move Down** buttons reorder ties.
-- **All Watched Folders is the default** for new and existing rules. This uses the directories in the main **Watched Folders** section. If the main list changes, default rules automatically follow the new list.
-- **Custom watched folders** let individual rules scan one or several directories independently of the main list. Use **Add Folder** repeatedly or enter paths separated by the vertical bar `|`, for example `~/Pictures|~/Desktop`. Folder paths can point outside the home directory when valid.
-- Custom-only folders are not made global: other rules will not start scanning them unless those rules explicitly use them too.
-- Changing rule priority or source folders takes effect on the next scan. Already-moved files are not relocated.
+- Select a rule and use **Move Up** or **Move Down** to adjust its priority. There is no separate numeric priority to enter.
+- For example, if `*.zip` is `1/79` and `filename.zip` is `79/79`, `filename.zip` is handled by the higher-ranked `*.zip` rule, even though both patterns match.
+- A newly created rule starts at the bottom of the list. Moving it up gives it higher priority.
+- **All Watched Folders** is the default for each rule and follows the main watched-folder selection.
+- **Rule-specific watched folders** can override that default. Add one or several directories with **Add Folder**, or separate typed paths with `|`, e.g. `~/Pictures|~/Desktop`. A custom-only folder doesn't activate unrelated rules.
+- Changing a rule's position or watched folders affects the next scan. Already-sorted files are not moved again solely because the priority changes.
 
-Existing four-column rules remain valid; when you save rules in v1.3.8, the app uses six tab-separated fields:
-
-`scope`, `pattern`, `destination`, `mode`, `priority`, `sources`.
-
-The `sources` value is `-` for All Watched Folders or a `|`-separated list of paths for custom sources.
+**Migration from v1.3.8:** Numeric priorities are applied once on first loading an older configuration, then converted into the corresponding list order. Ties keep their previous relative order. Old four-column configurations remain supported; their existing row order is preserved. New saves use six tab-separated fields: `scope`, `pattern`, `destination`, `mode`, `position-rank`, `sources`. The stored rank is derived from the position, not separately editable. A `# rule-order: position` header tells the engine to use list order rather than legacy numeric priorities.
 
 ### Text entry on Linux
 
@@ -49,11 +45,11 @@ Release assets are distributed through [GitHub Releases](https://github.com/gadz
 
 ### Linux (x86-64)
 
-Download `File-Sorter-v1.3.8-x86_64.AppImage`, give it executable permission, and launch:
+Download `File-Sorter-v1.3.9-x86_64.AppImage`, give it executable permission, and launch:
 
 ```bash
-chmod +x File-Sorter-v1.3.8-x86_64.AppImage
-./File-Sorter-v1.3.8-x86_64.AppImage
+chmod +x File-Sorter-v1.3.9-x86_64.AppImage
+./File-Sorter-v1.3.9-x86_64.AppImage
 ```
 _(Note: Not needed if your OS supports applying executable permissions on launch)_
 
@@ -61,11 +57,11 @@ Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a 
 
 ### Windows
 
-Extract `File-Sorter-v1.3.8-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
+Extract `File-Sorter-v1.3.9-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
 
 ### macOS
 
-Extract `File-Sorter-v1.3.8-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
+Extract `File-Sorter-v1.3.9-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
 
 ## First-run setup (opt-in)
 
@@ -85,7 +81,7 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 ## Sorting options
 
 - **Watched directories:** Add or remove folders through Config. Only their top-level files are scanned.
-- **File formats:** Manage wildcard patterns and destinations in Config. The highest-priority matching rule wins; ties use the original rule order. Dropping sample files detects their extensions when drag-and-drop is available.
+- **File formats:** Manage wildcard patterns and destinations in Config. The first matching rule in the list wins; use Move Up / Move Down to set precedence. Dropping sample files detects their extensions when drag-and-drop is available.
 - **Custom destinations:** Direct each rule to a directory anywhere your user has write permission. Missing destination directories are created when needed.
 - **Archive sorting:** `archive` rules organize files into `New/<type>/` or `Old/<type>/` after 72 hours, and reclassify them later.
 - **Overwrite Files:** OFF by default. Enabling it (with confirmation) allows replacing existing regular files with the same name. This is destructive.
@@ -101,7 +97,7 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 | Windows | `%APPDATA%\sorter-config\` |
 | macOS | `~/Library/Application Support/sorter-config/` |
 
-Configuration files include `directories.txt`, `rules.tsv` (four legacy columns, or six columns with `priority` and `sources`), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
+Configuration files include `directories.txt`, `rules.tsv` (four legacy columns, or six columns with `position-rank` and `sources`), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
 
 ## Updates
 
