@@ -1,0 +1,124 @@
+#!/bin/sh
+# File Sorter portable macOS launcher (Homebrew, python.org, and custom Python).
+# Never assume a GUI app inherits Terminal's PATH. Test Tk *initialization*,
+# not just `import tkinter`: incompatible Tcl/Tk builds can abort on macOS.
+set -u
+ulimit -c 0 2>/dev/null || true
+BASE=$(CDPATH= cd -- "$(dirname -- "$0")/../Resources" && pwd) || exit 1
+LOG_DIR="${HOME:?}/Library/Logs/File-Sorter"
+mkdir -p "$LOG_DIR" 2>/dev/null || true
+LOG="$LOG_DIR/launcher.log"
+if [ -f "$LOG" ] && [ "$(wc -c < "$LOG" | tr -d ' ')" -gt 1048576 ]; then
+    mv "$LOG" "$LOG.old" 2>/dev/null || true
+fi
+{
+    printf '\n=== File Sorter macOS launcher (Homebrew support) %s ===\n' "$(date)"
+    if command -v sw_vers >/dev/null 2>&1; then
+        printf 'macOS version: '; sw_vers -productVersion || true
+    fi
+    printf 'HOME=%s\n' "$HOME"
+} >> "$LOG" 2>/dev/null || true
+
+# The versioned Homebrew Python binary and matching python-tk@version formula
+# must be installed together. Just `brew install tcl-tk` is not enough.
+FOUND_PYTHON=0
+FOUND_TK_FAILURE=0
+LAST_PY_VERSION=""
+try_python() {
+    PY=$1
+    [ -x "$PY" ] || return 1
+    FOUND_PYTHON=1
+    # Allow spaces in installation paths. Keep probes in child processes because
+    # Tcl/Tk can abort instead of raising a Python exception.
+    INFO=$("$PY" -c 'import sys; print("%d.%d" % sys.version_info[:2]); print(sys.executable)' 2>> "$LOG")
+    RC=$?
+    if [ "$RC" -ne 0 ]; then
+        printf 'Python interpreter failed (%s): %s\n' "$RC" "$PY" >> "$LOG"
+        return 1
+    fi
+    VERSION=$(printf '%s\n' "$INFO" | sed -n '1p')
+    case "$VERSION" in
+        3.1[1-9]|3.[2-9][0-9]) : ;;
+        *) printf 'Python too old (%s): %s\n' "$VERSION" "$PY" >> "$LOG"; return 1 ;;
+    esac
+    LAST_PY_VERSION=$VERSION
+    printf 'Probing Python %s: %s\n' "$VERSION" "$PY" >> "$LOG"
+    # Tcl/Tk must be importable AND able to create a real Aqua Tk window.
+    "$PY" -c 'import tkinter as tk; root=tk.Tk(); root.withdraw(); root.update_idletasks(); root.destroy()' >> "$LOG" 2>&1
+    RC=$?
+    if [ "$RC" -eq 0 ]; then
+        printf 'Using Python %s with working Tk: %s\n' "$VERSION" "$PY" >> "$LOG"
+        exec "$PY" "$BASE/src/file_sorter_app.py" "$@"
+    fi
+    FOUND_TK_FAILURE=1
+    printf 'Rejected Python %s (Tk startup exit %s): %s\n' "$VERSION" "$RC" "$PY" >> "$LOG"
+    return 1
+}
+
+# Explicit interpreter override for advanced users; fall through on failure.
+if [ -n "${FILE_SORTER_PYTHON:-}" ]; then
+    try_python "$FILE_SORTER_PYTHON" "$@"
+fi
+
+try_brew_prefix() {
+    PREFIX=$1
+    [ -n "$PREFIX" ] && [ -d "$PREFIX" ] || return 0
+    printf 'Looking for Homebrew Python in: %s\n' "$PREFIX" >> "$LOG"
+    # Prefer versioned paths. Unversioned `python3` can point at a different
+    # Python from the one that has `python-tk@X.Y` installed.
+    for V in 3.15 3.14 3.13 3.12 3.11; do
+        try_python "$PREFIX/bin/python$V" "$@"
+        try_python "$PREFIX/opt/python@$V/bin/python$V" "$@"
+        try_python "$PREFIX/opt/python@$V/libexec/bin/python3" "$@"
+    done
+    try_python "$PREFIX/bin/python3" "$@"
+    try_python "$PREFIX/opt/python/libexec/bin/python3" "$@"
+}
+
+# Apple Silicon, Intel, a user-defined prefix, and a custom Homebrew prefix.
+try_brew_prefix "${FILE_SORTER_HOMEBREW_PREFIX:-}" "$@"
+try_brew_prefix "${HOMEBREW_PREFIX:-}" "$@"
+try_brew_prefix /opt/homebrew "$@"
+try_brew_prefix /usr/local "$@"
+
+# `brew` may be installed at a custom location accessible in PATH.
+if command -v brew >/dev/null 2>&1; then
+    BREW_PREFIX=$(brew --prefix 2>> "$LOG")
+    try_brew_prefix "$BREW_PREFIX" "$@"
+fi
+
+# Support current python.org installers and environment-provided interpreters.
+for PY in \
+  /Library/Frameworks/Python.framework/Versions/Current/bin/python3 \
+  /Library/Frameworks/Python.framework/Versions/3.15/bin/python3 \
+  /Library/Frameworks/Python.framework/Versions/3.14/bin/python3 \
+  /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
+  /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 \
+  /Library/Frameworks/Python.framework/Versions/3.11/bin/python3; do
+    try_python "$PY" "$@"
+done
+
+# Avoid Apple's /usr/bin/python3 (its Tk may be older/incompatible).
+# A user's PATH is a last resort and may contain a working virtual environment.
+for PY in python3.15 python3.14 python3.13 python3.12 python3.11 python3; do
+    WHICH=$(command -v "$PY" 2>/dev/null || true)
+    case "$WHICH" in
+        ''|/usr/bin/python3) : ;;
+        *) try_python "$WHICH" "$@" ;;
+    esac
+done
+
+if [ -x /opt/homebrew/bin/python3.14 ] || [ -x /usr/local/bin/python3.14 ]; then
+    RECOMMENDED_VERSION=3.14
+else
+    RECOMMENDED_VERSION="${LAST_PY_VERSION:-3.14}"
+fi
+MESSAGE="File Sorter could not start Tkinter. Detected Python ${LAST_PY_VERSION:-unknown}. For Homebrew Python ${RECOMMENDED_VERSION}, try: brew install python-tk@${RECOMMENDED_VERSION}. Verify using python${RECOMMENDED_VERSION} -m tkinter. See ~/Library/Logs/File-Sorter/launcher.log."
+printf '%s\n' "$MESSAGE" >&2
+printf 'No compatible Tcl/Tk Python installation. Last detected Python version: %s\n' "$LAST_PY_VERSION" >> "$LOG"
+if [ -x /usr/bin/osascript ]; then
+    /usr/bin/osascript -e 'on run argv' \
+      -e 'display dialog (item 1 of argv) buttons {"OK"} default button 1' \
+      -e 'end run' -- "$MESSAGE" 2>/dev/null || true
+fi
+exit 1
