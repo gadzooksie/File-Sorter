@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=File Sorter
+GenericName=Automatic file organizer
+Comment=Configure and run the File Sorter programs
+Exec=AppRun
+Icon=file-sorter
+Terminal=false
+Categories=Utility;FileTools;
+StartupNotify=true
