@@ -2,7 +2,25 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter v1.3.6** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+**File Sorter v1.3.7** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+
+## Interface and keyboard navigation
+
+File Sorter v1.3.7 adds visual hover feedback and keyboard navigation on all three platforms.
+The Linux AppImage also features a **scrollable activity history** with a **Latest** button
+so older sorting events are not drawn outside the activity panel.
+
+### Linux shortcuts
+
+- **Main menu:** Tab or Up/Down selects a card; Enter opens it. Keys `1`, `2`, `3` open Sorter, Config, and update check.
+- **Sorter:** `Ctrl+M` returns to the menu without stopping sorting; `Ctrl+L` clears the log. Scroll the activity panel with the mouse wheel, Page Up/Down, and press End or **Latest** to see the newest events.
+- **Config:** `Ctrl+1` opens Watched Folders, `Ctrl+2` opens Sorting Rules, `Ctrl+R` reloads saved configuration, and `Ctrl+M` returns to the menu. With a text field unfocused, Up/Down selects rows.
+
+### Windows and macOS shortcuts
+
+Use `Ctrl+1/2/3` (Windows) or `Command+1/2/3` (macOS) to switch between Menu, Sorter, and Config; `Ctrl/Command+L` clears the activity log, and `Ctrl/Command+R` reloads configuration when Config is open. Buttons also retain their keyboard focus and mouse-hover feedback.
+
+_The program never starts sorting merely because a page is opened. First-use folder monitoring remains opt-in._
 
 ## Downloads and installation
 
@@ -10,23 +28,23 @@ Release assets are distributed through [GitHub Releases](https://github.com/gadz
 
 ### Linux (x86-64)
 
-Download `File-Sorter-v1.3.6-x86_64.AppImage`, give it executable permission, and launch:
+Download `File-Sorter-v1.3.7-x86_64.AppImage`, give it executable permission, and launch:
 
 ```bash
-chmod +x File-Sorter-v1.3.6-x86_64.AppImage
-./File-Sorter-v1.3.6-x86_64.AppImage
+chmod +x File-Sorter-v1.3.7-x86_64.AppImage
+./File-Sorter-v1.3.7-x86_64.AppImage
 ```
-_(Note: Not needed if your OS supports automatic executable permissions)_
+_(Note: Not needed if your OS supports applying executable permissions on launch)_
 
 Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a FUSE-free AppImage runtime. The sorter and config are built in C/Xlib; the sorting worker is embedded Bash.
 
 ### Windows
 
-Extract `File-Sorter-v1.3.6-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
+Extract `File-Sorter-v1.3.7-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
 
 ### macOS
 
-Extract `File-Sorter-v1.3.6-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
+Extract `File-Sorter-v1.3.7-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
 
 ## First-run setup (opt-in)
 
@@ -34,7 +52,7 @@ Extract `File-Sorter-v1.3.6-macOS-Portable.zip` and open **File Sorter.app** or 
 
 The default file-format rules are available as templates, but they do not move any files unless you choose watched folders and start sorting. Existing configuration and watched directories are preserved during upgrades. _The initial setup suggestions do not modify any files until you select them._
 
-## Destination mode (new in v1.3.6)
+## Destination mode
 
 On **Config > Watched Directories**, use the **Destination Mode** toggle:
 
