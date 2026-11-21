@@ -51,6 +51,7 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 - **Overwrite Files:** OFF by default. Enabling it (with confirmation) allows replacing existing regular files with the same name. This is destructive.
 - **Check Interval (seconds):** Editable decimal value, with up/down controls in increments of 0.1 seconds. Default is 2 seconds.
 - **Background behavior:** Sorting continues when switching between pages, but stops when the application exits.
+- MAKE SURE NO FILES IN SORTER CONFIG ARE FILES YOU DON'T WANT TO BE REMOVED!!!
 
 ## Configuration locations
 
