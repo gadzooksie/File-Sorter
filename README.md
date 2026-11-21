@@ -16,6 +16,7 @@ Download `File-Sorter-v1.3.6-x86_64.AppImage`, give it executable permission, an
 chmod +x File-Sorter-v1.3.6-x86_64.AppImage
 ./File-Sorter-v1.3.6-x86_64.AppImage
 ```
+_(Note: Not needed if your OS supports automatic executable permissions)_
 
 Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a FUSE-free AppImage runtime. The sorter and config are built in C/Xlib; the sorting worker is embedded Bash.
 
