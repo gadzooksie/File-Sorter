@@ -2,11 +2,11 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter v1.3.7** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+**File Sorter v1.3.8** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
 
 ## Interface and keyboard navigation
 
-File Sorter v1.3.7 adds visual hover feedback and keyboard navigation on all three platforms.
+File Sorter includes visual hover feedback and keyboard navigation on all three platforms.
 The Linux AppImage also features a **scrollable activity history** with a **Latest** button
 so older sorting events are not drawn outside the activity panel.
 
@@ -22,17 +22,38 @@ Use `Ctrl+1/2/3` (Windows) or `Command+1/2/3` (macOS) to switch between Menu, So
 
 _The program never starts sorting merely because a page is opened. First-use folder monitoring remains opt-in._
 
+## Per-rule priorities and watched folders (v1.3.8)
+
+Each sorting rule now has **Priority** (0–9999) and **Rule-Specific Watched Folders** options in **Config > Sorting Rules > Destination & Options > Priority / Sources**.
+
+- **Higher priority numbers win.** For example, `*.zip` with priority 20 takes precedence over `filename.zip` with priority 5, even if the filename-specific rule appears earlier in the list.
+- **Equal priorities preserve rule-list order.** The existing **Move Up / Move Down** buttons reorder ties.
+- **All Watched Folders is the default** for new and existing rules. This uses the directories in the main **Watched Folders** section. If the main list changes, default rules automatically follow the new list.
+- **Custom watched folders** let individual rules scan one or several directories independently of the main list. Use **Add Folder** repeatedly or enter paths separated by the vertical bar `|`, for example `~/Pictures|~/Desktop`. Folder paths can point outside the home directory when valid.
+- Custom-only folders are not made global: other rules will not start scanning them unless those rules explicitly use them too.
+- Changing rule priority or source folders takes effect on the next scan. Already-moved files are not relocated.
+
+Existing four-column rules remain valid; when you save rules in v1.3.8, the app uses six tab-separated fields:
+
+`scope`, `pattern`, `destination`, `mode`, `priority`, `sources`.
+
+The `sources` value is `-` for All Watched Folders or a `|`-separated list of paths for custom sources.
+
+### Text entry on Linux
+
+Linux text fields now show a **blinking insertion caret** and an I-beam pointer. You can use Left/Right, Home/End, Backspace/Delete, and Ctrl+V to edit at the caret instead of only appending text.
+
 ## Downloads and installation
 
 Release assets are distributed through [GitHub Releases](https://github.com/gadzooksie/File-Sorter/releases). This source package supports three versions at the same version number:
 
 ### Linux (x86-64)
 
-Download `File-Sorter-v1.3.7-x86_64.AppImage`, give it executable permission, and launch:
+Download `File-Sorter-v1.3.8-x86_64.AppImage`, give it executable permission, and launch:
 
 ```bash
-chmod +x File-Sorter-v1.3.7-x86_64.AppImage
-./File-Sorter-v1.3.7-x86_64.AppImage
+chmod +x File-Sorter-v1.3.8-x86_64.AppImage
+./File-Sorter-v1.3.8-x86_64.AppImage
 ```
 _(Note: Not needed if your OS supports applying executable permissions on launch)_
 
@@ -40,11 +61,11 @@ Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a 
 
 ### Windows
 
-Extract `File-Sorter-v1.3.7-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
+Extract `File-Sorter-v1.3.8-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
 
 ### macOS
 
-Extract `File-Sorter-v1.3.7-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
+Extract `File-Sorter-v1.3.8-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
 
 ## First-run setup (opt-in)
 
@@ -64,13 +85,13 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 ## Sorting options
 
 - **Watched directories:** Add or remove folders through Config. Only their top-level files are scanned.
-- **File formats:** Manage ordered wildcard patterns and destinations in Config. The first matching rule wins. Dropping sample files detects their extensions when drag-and-drop is available.
+- **File formats:** Manage wildcard patterns and destinations in Config. The highest-priority matching rule wins; ties use the original rule order. Dropping sample files detects their extensions when drag-and-drop is available.
 - **Custom destinations:** Direct each rule to a directory anywhere your user has write permission. Missing destination directories are created when needed.
 - **Archive sorting:** `archive` rules organize files into `New/<type>/` or `Old/<type>/` after 72 hours, and reclassify them later.
 - **Overwrite Files:** OFF by default. Enabling it (with confirmation) allows replacing existing regular files with the same name. This is destructive.
 - **Check Interval (seconds):** Editable decimal value, with up/down controls in increments of 0.1 seconds. Default is 2 seconds.
 - **Background behavior:** Sorting continues when switching between pages, but stops when the application exits.
-- MAKE SURE NO FILES IN SORTER CONFIG ARE FILES YOU DON'T WANT TO BE REMOVED!!!
+- **MAKE SURE NO FILES IN SORTER CONFIG ARE FILES YOU DON'T WANT TO BE REMOVED!!!**
 
 ## Configuration locations
 
@@ -80,7 +101,7 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 | Windows | `%APPDATA%\sorter-config\` |
 | macOS | `~/Library/Application Support/sorter-config/` |
 
-Configuration files include `directories.txt`, `rules.tsv` (four tab-separated fields: `scope`, `pattern`, `destination`, `mode`), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
+Configuration files include `directories.txt`, `rules.tsv` (four legacy columns, or six columns with `priority` and `sources`), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
 
 ## Updates
 
