@@ -2,7 +2,16 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter v1.3.11** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+**File Sorter v1.3.12** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+
+## Rule matching diagnostics and single-worker protection (v1.3.12)
+
+**Rule precedence remains positional**: `1/N` is highest. When `Filename.AppImage` is above `*.AppImage` and both apply to the same source folder, the exact-filename rule wins. The engines have been regression-tested with both orderings. Bare filenames must match the actual name (including capitalization on Linux), while wildcard patterns match extensions and other glob forms. On Linux, already-sorted files are not automatically moved again when you reorder rules.
+
+- The activity history now includes the winning rule's **position and pattern** on successful file moves, e.g. `Moved [rule 1/36: Filename.AppImage]`. This helps distinguish rule mismatches from problems with watched-folder selection or file collisions.
+- The Linux sorter uses a per-configuration lock so two instances of this release cannot move the same files at the same time. The Windows/macOS engine also refuses to start an additional worker against the same config directory. If an older File Sorter version is still running, close that old process manually—it does not participate in the new lock.
+- Exact filename comparisons are handled literally, including filenames containing bracket characters. Wildcard matching remains supported.
+- Existing `rules.tsv`, per-rule overwrite/recursive settings and watched folders are preserved. No re-sorting of previously moved files occurs automatically.
 
 ## Interface and keyboard navigation
 
@@ -44,7 +53,7 @@ Every sorting rule now has its own **Search subfolders** checkbox. It is **OFF b
 
 ### Release downloads
 
-Publish the Linux AppImage, Windows portable ZIP, macOS portable ZIP, and `SHA256SUMS.txt` as **individual GitHub Release assets**. The `File-Sorter-v1.3.11-Complete-Release.zip` bundles these same files together with source code, README, and release notes for the maintainer's convenience; it is not a replacement for individual release assets.
+Publish the Linux AppImage, Windows portable ZIP, macOS portable ZIP, and `SHA256SUMS.txt` as **individual GitHub Release assets**. The `File-Sorter-v1.3.12-Complete-Release.zip` bundles these same files together with source code, README, and release notes for the maintainer's convenience; it is not a replacement for individual release assets.
 
 ## Position-based rule priorities and watched folders (v1.3.9)
 
@@ -69,11 +78,11 @@ Release assets are distributed through [GitHub Releases](https://github.com/gadz
 
 ### Linux (x86-64)
 
-Download `File-Sorter-v1.3.11-x86_64.AppImage`, give it executable permission, and launch:
+Download `File-Sorter-v1.3.12-x86_64.AppImage`, give it executable permission, and launch:
 
 ```bash
-chmod +x File-Sorter-v1.3.11-x86_64.AppImage
-./File-Sorter-v1.3.11-x86_64.AppImage
+chmod +x File-Sorter-v1.3.12-x86_64.AppImage
+./File-Sorter-v1.3.12-x86_64.AppImage
 ```
 _(Note: Not needed if your OS supports applying executable permissions on launch)_
 
@@ -81,11 +90,11 @@ Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a 
 
 ### Windows
 
-Extract `File-Sorter-v1.3.11-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
+Extract `File-Sorter-v1.3.12-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
 
 ### macOS
 
-Extract `File-Sorter-v1.3.11-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
+Extract `File-Sorter-v1.3.12-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
 
 ## First-run setup (opt-in)
 
