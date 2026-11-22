@@ -2,7 +2,7 @@ First repo, so expect discrepancies from regular repos.
 
 # File Sorter
 
-**File Sorter v1.3.10** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
+**File Sorter v1.3.11** is a configurable, automatic file organizer for Linux, Windows, and macOS. It organizes files by extension or filename pattern, with a single application window containing **Menu**, **Sorter**, and **Config** pages.
 
 ## Interface and keyboard navigation
 
@@ -22,6 +22,16 @@ Use `Ctrl+1/2/3` (Windows) or `Command+1/2/3` (macOS) to switch between Menu, So
 
 _The program never starts sorting merely because a page is opened. First-use folder monitoring remains opt-in._
 
+## Overwrite existing files per rule (v1.3.11)
+
+Every sorting rule has its own **Overwrite existing files** checkbox, **OFF by default for new rules**. It works independently of **Search subfolders** and other rules. If a file matches multiple rules, the **first matching rule** (highest position) decides the destination *and* whether a same-named destination file may be replaced. If overwriting is disabled for the winning rule, the original destination file is preserved and the incoming file stays in place.
+
+- **Linux:** In Config > Sorting Rules, each row has **R** (search subfolders) and **O** (overwrite) checkboxes. Enabling overwrite directly from the list requires a second click to confirm. The **Priority / Sources** editor also offers **Overwrite for this rule**; click **Save Rule** to apply it.
+- **Windows/macOS:** The list shows `[R]` and `[O]` when enabled. Click the respective marker or use the corresponding editor checkbox; enabling overwrite prompts for confirmation.
+- **Bulk toggle:** The original top-level Overwrite Files control now changes **all existing rules** at once, showing `OFF`, `ON`, or `MIXED`. Individual checkboxes override the last bulk choice without being disabled by it.
+- **Migration:** For older 4-, 6-, or 7-column rules, File Sorter uses the saved `overwrite-files.txt` setting as the initial overwrite value. Previously enabled global overwrite settings are thus preserved for existing rules. Newly created rules default OFF. Saves use an eighth `overwrite` column (`0`/`1`), which takes precedence over the legacy global preference.
+- **Safety:** Overwriting can replace only regular destination files, not directories or symlinks. Replaced files may be unrecoverable.
+
 ## Search subfolders per rule (v1.3.10)
 
 Every sorting rule now has its own **Search subfolders** checkbox. It is **OFF by default**, including when loading old rules. A rule without this option checks files directly inside its watched folder only; a checked rule searches all nested directories under its assigned sources. Enable or disable the checkbox when creating/editing a rule, or click the `[ ]` / `[x]` marker at the start of the rule row in the sorting-rules list. Changes are saved per rule and reloaded by the sorter on its next scan.
@@ -30,11 +40,11 @@ Every sorting rule now has its own **Search subfolders** checkbox. It is **OFF b
 - **Priority still follows list position (1/N highest).** For a nested file, only recursive rules are eligible, in that same priority order. For top-level files, all applicable rules are eligible.
 - Symlinked subdirectories are not traversed; known destination/output trees under watched folders are skipped so already-sorted files aren't ingested again.
 - Searching a very large directory tree may increase scan time and disk activity. Use the checkbox only where needed.
-- Existing four-column/six-column `rules.tsv` files load unchanged. New saves add a seventh `recursive` field (`0` or `1`), preserving the existing first six columns. Older versions may not understand the additional field.
+- Existing four-column/six-column `rules.tsv` files load unchanged. v1.3.10 saves added a seventh `recursive` field (`0` or `1`), preserving the existing first six columns. Older versions may not understand the additional field.
 
 ### Release downloads
 
-Publish the Linux AppImage, Windows portable ZIP, macOS portable ZIP, and `SHA256SUMS.txt` as **individual GitHub Release assets**. The `File-Sorter-v1.3.10-Complete-Release.zip` bundles these same files together with source code, README, and release notes for the maintainer's convenience; it is not a replacement for individual release assets.
+Publish the Linux AppImage, Windows portable ZIP, macOS portable ZIP, and `SHA256SUMS.txt` as **individual GitHub Release assets**. The `File-Sorter-v1.3.11-Complete-Release.zip` bundles these same files together with source code, README, and release notes for the maintainer's convenience; it is not a replacement for individual release assets.
 
 ## Position-based rule priorities and watched folders (v1.3.9)
 
@@ -47,7 +57,7 @@ Rule **priority now equals its position in the Sorting Rules list**, shown as `1
 - **Rule-specific watched folders** can override that default. Add one or several directories with **Add Folder**, or separate typed paths with `|`, e.g. `~/Pictures|~/Desktop`. A custom-only folder doesn't activate unrelated rules.
 - Changing a rule's position or watched folders affects the next scan. Already-sorted files are not moved again solely because the priority changes.
 
-**Migration from v1.3.8:** Numeric priorities are applied once on first loading an older configuration, then converted into the corresponding list order. Ties keep their previous relative order. Old four-column configurations remain supported; their existing row order is preserved. Older v1.3.9 saves use six tab-separated fields; v1.3.10 adds the optional `recursive` field (0/1) as column seven. The stored rank is derived from the position, not separately editable. A `# rule-order: position` header tells the engine to use list order rather than legacy numeric priorities.
+**Migration from v1.3.8:** Numeric priorities are applied once on first loading an older configuration, then converted into the corresponding list order. Ties keep their previous relative order. Old four-column configurations remain supported; their existing row order is preserved. Older v1.3.9 saves use six tab-separated fields; v1.3.10 added `recursive` (0/1) as column seven, and v1.3.11 adds `overwrite` (0/1) as column eight. The stored rank is derived from the position, not separately editable. A `# rule-order: position` header tells the engine to use list order rather than legacy numeric priorities.
 
 ### Text entry on Linux
 
@@ -59,11 +69,11 @@ Release assets are distributed through [GitHub Releases](https://github.com/gadz
 
 ### Linux (x86-64)
 
-Download `File-Sorter-v1.3.10-x86_64.AppImage`, give it executable permission, and launch:
+Download `File-Sorter-v1.3.11-x86_64.AppImage`, give it executable permission, and launch:
 
 ```bash
-chmod +x File-Sorter-v1.3.10-x86_64.AppImage
-./File-Sorter-v1.3.10-x86_64.AppImage
+chmod +x File-Sorter-v1.3.11-x86_64.AppImage
+./File-Sorter-v1.3.11-x86_64.AppImage
 ```
 _(Note: Not needed if your OS supports applying executable permissions on launch)_
 
@@ -71,11 +81,11 @@ Requires Linux x86-64, glibc 2.34 or newer, and an X11/XWayland desktop. Uses a 
 
 ### Windows
 
-Extract `File-Sorter-v1.3.10-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
+Extract `File-Sorter-v1.3.11-Windows-Portable.zip`, then open **File Sorter.cmd**. The portable package requires Python 3.11+ with Tkinter. A GitHub Actions workflow is included for compiling a native Windows executable.
 
 ### macOS
 
-Extract `File-Sorter-v1.3.10-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
+Extract `File-Sorter-v1.3.11-macOS-Portable.zip` and open **File Sorter.app** or **File Sorter.command**. The portable package requires Python 3.11+ with working Tkinter (supported for Homebrew Python and python.org builds). A native app build workflow is included. The Homebrew launcher checks candidate interpreters and reports which matching `python-tk@X.Y` package is needed if no compatible Tk is available.
 
 ## First-run setup (opt-in)
 
@@ -111,7 +121,7 @@ Only rule destinations at or within **`~/Sorted/`** are redirected by this switc
 | Windows | `%APPDATA%\sorter-config\` |
 | macOS | `~/Library/Application Support/sorter-config/` |
 
-Configuration files include `directories.txt`, `rules.tsv` (four, six, or seven tab-separated columns; seventh is the per-rule recursive flag), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
+Configuration files include `directories.txt`, `rules.tsv` (four, six, seven, or eight tab-separated columns; seventh is the per-rule recursive flag and eighth the per-rule overwrite flag), `destination-mode.txt` (`shared` or `per-folder`), `overwrite-files.txt`, `scan-interval.txt`, and the automatic update preferences. User settings are stored outside the application and are preserved during updates.
 
 ## Updates
 
